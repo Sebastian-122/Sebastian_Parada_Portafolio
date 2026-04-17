@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <title>Estado de Habitaciones</title>
+    <link rel="stylesheet" th:href="@{/style.css}">
+    <link rel="shortcut icon" href="/facile.png" type="image/x-icon">
+
+    <style>
+        .btn-disabled {
+            background-color: #ccc;
+            color: #666;
+            border: 1px solid #999;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+
+<h2>Estado de Habitaciones</h2>
+
+<table border="1">
+    <thead>
+        <tr>
+            <th>Número</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th>Precio</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        <tr th:each="h : ${habitaciones}">
+            <td th:text="${h.numero}"></td>
+            <td th:text="${h.tipo}"></td>
+
+            <td th:text="${h.estado}"
+                th:class="'estado-' + ${h.estado}">
+            </td>
+
+            <td th:text="${h.precioNoche}"></td>
+
+            <td>
+
+                <!-- ✅ CHECK-IN FUNCIONAL -->
+                <form th:if="${h.estado.name() == 'DISPONIBLE'
+                    and #authorization.expression('hasRole(''ADMIN'')')}"
+                      th:action="@{/checkin}" method="post">
+
+                    <input type="hidden" name="habitacionId" th:value="${h.id}">
+                    <button type="submit">Check-In</button>
+                </form>
+
+                <!-- ✅ CHECK-OUT FUNCIONAL -->
+                <form th:if="${h.estado.name() == 'OCUPADA'
+                    and #authorization.expression('hasRole(''ADMIN'')')}"
+                      th:action="@{/checkout}" method="post">
+
+                    <input type="hidden" name="habitacionId" th:value="${h.id}">
+                    <button type="submit">Check-Out</button>
+                </form>
+
+                <!-- 🚫 BOTONES DESHABILITADOS (LIMPIEZA / MANTENIMIENTO) -->
+                <div th:if="${(h.estado.name() == 'LIMPIEZA' or h.estado.name() == 'MANTENIMIENTO')
+                    and #authorization.expression('hasRole(''ADMIN'')')}">
+
+                    <button class="btn-disabled" disabled>Check-In</button>
+                    <button class="btn-disabled" disabled>Check-Out</button>
+                </div>
+
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<br>
+<a th:href="@{/dashboard}">← Volver</a>
+
+</body>
+</html>
